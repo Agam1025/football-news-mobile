@@ -1,5 +1,5 @@
-import 'package:football_news/menu.dart';
 import 'package:flutter/material.dart';
+import 'package:football_news/screens.dart/menu.dart';
 
 void main() {
   runApp(const MyApp());
