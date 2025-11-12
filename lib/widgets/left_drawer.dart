@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:football_news/screens.dart/menu.dart';
-import 'package:football_news/screens.dart/newslist_form.dart';
+import 'package:football_news/screens/menu.dart';
+import 'package:football_news/screens/newslist_form.dart';
+import 'package:football_news/screens/news_entry_list.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -48,6 +49,20 @@ class LeftDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => MyHomePage(),
+                ),
+              );
+            },
+          ),
+
+          // ✅ Routing ke halaman News List
+          ListTile(
+            leading: const Icon(Icons.add_reaction_rounded),
+            title: const Text('News List'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NewsEntryListPage(),
                 ),
               );
             },

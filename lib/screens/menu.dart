@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:football_news/screens.dart/newslist_form.dart';
+import 'package:football_news/screens/newslist_form.dart';
+import 'package:football_news/screens/news_entry_list.dart';
+import 'package:football_news/screens/login.dart';
 import 'package:football_news/widgets/left_drawer.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
@@ -17,7 +21,8 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold menyediakan struktur dasar halaman dengan AppBar dan body.
+    final request = context.watch<CookieRequest>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -27,14 +32,14 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
 
-      drawer: const LeftDrawer(), // ✅ tetap sama
+      drawer: const LeftDrawer(),
 
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Baris info
+            // Informasi pengguna
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -43,7 +48,6 @@ class MyHomePage extends StatelessWidget {
                 InfoCard(title: 'Class', content: kelas),
               ],
             ),
-
             const SizedBox(height: 16.0),
 
             // Konten utama
@@ -70,7 +74,7 @@ class MyHomePage extends StatelessWidget {
                     crossAxisCount: 3,
                     shrinkWrap: true,
                     children: items.map((ItemHomepage item) {
-                      return ItemCard(item);
+                      return ItemCard(item, request: request);
                     }).toList(),
                   ),
                 ],
@@ -126,8 +130,9 @@ class ItemHomepage {
 // ========================
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
+  final CookieRequest request;
 
-  const ItemCard(this.item, {super.key});
+  const ItemCard(this.item, {super.key, required this.request});
 
   @override
   Widget build(BuildContext context) {
@@ -135,8 +140,8 @@ class ItemCard extends StatelessWidget {
       color: Theme.of(context).colorScheme.secondary,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: () {
-          // ✅ Menampilkan snackbar saat tombol ditekan
+        onTap: () async {
+          // Menampilkan snackbar saat tombol ditekan
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -145,17 +150,48 @@ class ItemCard extends StatelessWidget {
               ),
             );
 
-          // ✅ Navigasi ke halaman sesuai tombol
+          // Navigasi ke halaman sesuai tombol
           if (item.name == "Add News") {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const NewsFormPage()),
             );
+          } else if (item.name == "See Football News") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NewsEntryListPage()),
+            );
           }
 
-          // (Opsional) Kamu bisa tambahkan navigasi untuk tombol lain juga:
-          // if (item.name == "See Football News") { ... }
-          // if (item.name == "Logout") { ... }
+          // Logout
+          else if (item.name == "Logout") {
+            // TODO: Ganti URL dengan alamat aplikasi Django kamu
+            // Emulator Android → http://10.0.2.2:8000/
+            // Browser → http://localhost:8000/
+            final response = await request.logout(
+              "http://localhost:8000/auth/logout/",
+            );
+
+            String message = response["message"];
+            if (context.mounted) {
+              if (response['status']) {
+                String uname = response["username"];
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("$message See you again, $uname."),
+                  ),
+                );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              }
+            }
+          }
         },
 
         // Isi kartu
